@@ -1,126 +1,56 @@
 # CyberCheatSheet
 
-A quick-reference guide covering the core tools, commands, and concepts learned across the Hack The Box Starting Point tiers (Tier 0 - Tier 2).
+Personal quick-reference for solving Hack The Box machines and CTF challenges, with a focus on **web exploitation** and **forensics**.
+
+It started as notes from the Hack The Box Starting Point tiers and grows as I practise. It is organised by **situation** ("what do I do if I find X?") rather than by tool, so it can be used in the middle of a challenge.
 
 ---
 
-## 1. Reconnaissance & Scanning
+## Contents
 
-### Nmap (Network Mapper)
-The fundamental tool for discovering open ports and running services.
-* **Basic Scan:** `nmap <IP>`
-* **Service Version Scan:** `nmap -sV <IP>`
-* **Default Script Scan:** `nmap -sC <IP>`
-* **All-in-One (Aggressive):** `nmap -p- -sV -sC -A <IP>`
-  * `-p-`: Scans all 65,535 ports.
-  * `-sV`: Probes open ports to determine service/version info.
-  * `-sC`: Runs default nmap scripts.
-  * `-A`: Enables OS detection, version detection, script scanning, and traceroute.
+| File | Covers |
+|---|---|
+| [01 · Reconnaissance & Enumeration](01-recon.md) | Port scanning with nmap, web directory fuzzing, enumerating FTP, Telnet, SMB, Redis, MySQL |
+| [02 · Web Exploitation](02-web.md) | Burp Suite basics, login bypass (default creds, SQLi), IDOR, cookie manipulation |
+| [03 · Forensics](03-forensics.md) | Disk images (Autopsy), network captures (Wireshark), memory dumps (Volatility 3) |
+| [04 · Crypto & Password Cracking](04-crypto.md) | John the Ripper, Hashcat modes, cracking protected ZIPs and SSH keys |
+| [05 · Exploitation & Privilege Escalation](05-exploitation-privesc.md) | Reverse shells, shell stabilisation, Evil-WinRM, Linux privesc (sudo, SUID) |
+| [06 · Utilities](06-utilities.md) | Wordlists, file transfer, one-liners |
 
-### Web Directory Enumeration
-Finding hidden pages and directories on web servers.
-* **Gobuster:** `gobuster dir -u http://<IP> -w /usr/share/wordlists/dirb/common.txt`
-* **ffuf:** `ffuf -u http://<IP>/FUZZ -w /usr/share/wordlists/dirbuster/directory-list-2.3-small.txt`
-
----
-
-## 2. Service Enumeration & Access
-
-### Telnet (Port 23)
-Unencrypted text communications. Often left open with default or no credentials.
-* **Connect:** `telnet <IP>`
-
-### FTP - File Transfer Protocol (Port 21)
-Often allows "Anonymous" access.
-* **Connect:** `ftp <IP>`
-* **Anonymous Login:** Use username `anonymous` and a blank password.
-* **Commands:**
-  * `ls` / `dir`: List files
-  * `get <filename>`: Download a file to your machine
-  * `put <filename>`: Upload a file
-
-### SMB - Server Message Block (Ports 139, 445)
-Windows file sharing (also on Linux via Samba).
-* **List Shares:** `smbclient -L \\\\<IP>\\` (Leave password blank if prompted)
-* **Connect to a Share:** `smbclient \\\\<IP>\\<ShareName>`
-* **Download files:** `get <filename>`
-
-### Redis (Port 6379)
-In-memory database.
-* **Connect:** `redis-cli -h <IP>`
-* **Commands:**
-  * `info`: Get server information
-  * `keys *`: List all keys
-  * `get <key_name>`: Read the contents of a specific key
-
-### MySQL / MariaDB (Port 3306)
-Relational database management.
-* **Connect (No Password):** `mysql -h <IP> -u root`
-* **Connect (With Password):** `mysql -h <IP> -u root -p`
-* **Commands:**
-  * `SHOW DATABASES;`
-  * `USE <database_name>;`
-  * `SHOW TABLES;`
-  * `SELECT * FROM <table_name>;`
-
-### WinRM (Port 5985/5986)
-Windows Remote Management. Used to get a shell on Windows when credentials are known.
-* **Connect using Evil-WinRM:** `evil-winrm -i <IP> -u <username> -p <password>`
+### Quick jumps
+- [I only have an IP address](01-recon.md#i-only-have-an-ip-address)
+- [There is a login form](02-web.md#there-is-a-login-form)
+- [I have a network capture](03-forensics.md#i-have-a-network-capture-pcap--pcapng)
+- [I have a hash](04-crypto.md#i-have-a-hash)
+- [My shell is unstable](05-exploitation-privesc.md#my-shell-is-unstable)
 
 ---
 
-## 3. Web Exploitation Basics
+## How to read it
 
-### Admin Panel Bypasses
-* **Default Credentials:** Always try `admin:admin`, `admin:password`, `root:root`.
-* **Basic SQL Injection (Login Bypass):** `admin' OR '1'='1` (Use as the username, leave password blank or repeat the payload).
+Each entry follows the same format:
 
-### Burp Suite Fundamentals
-* Intercepting traffic to modify cookies, parameters, or headers.
-* **IDOR (Insecure Direct Object Reference):** Modifying a parameter (like `user_id=1` to `user_id=2`) to access another user's data.
-* **Cookie Manipulation:** Decoding Base64 cookies or changing role values (e.g., `role=user` to `role=admin`).
+````markdown
+### Situation or goal
+One line: what the command does and why you would use it.
+```bash
+command <PLACEHOLDER>
+```
+- `-option`: what it changes.
+````
 
----
+- Values in `<ANGLE_BRACKETS>` are placeholders: `<IP>` is the target, `<LHOST>` / `<LPORT>` are your machine's IP and port.
+- **`> TODO:`** marks topics I have not practised yet. They are filled in only after I have used them for real, so everything else here has been tested by me.
 
-## 4. Password & Hash Cracking
-
-### Extracting Hashes from Files
-* **Zip Files:** `zip2john file.zip > zip.hash`
-* **SSH Keys:** `ssh2john id_rsa > ssh.hash`
-
-### John The Ripper
-* **Crack a hash:** `john --wordlist=/usr/share/wordlists/rockyou.txt hash.txt`
-* **Show cracked passwords:** `john --show hash.txt`
-
-### Hashcat
-* **Crack NTLMv2 or MD5:** `hashcat -m <hash_type_number> hash.txt /usr/share/wordlists/rockyou.txt`
+List all pending topics:
+```bash
+grep -rn "TODO" *.md
+```
 
 ---
 
-## 5. Privilege Escalation (Linux)
+## Legal disclaimer
 
-Once you have a low-privileged shell on a Linux machine, check these to become root.
+This repository is for **educational purposes only**. The techniques described must only be used against systems you own or have **explicit written permission** to test, such as Hack The Box, TryHackMe, CTF competitions or your own lab. Unauthorised access to computer systems is illegal.
 
-### The Basics
-* **Check current user:** `whoami`
-* **Check your permissions:** `sudo -l` (Shows what commands you can run as root without a password)
-
-### SUID Binaries
-Find files owned by root that execute with root privileges.
-* **Find Command:** `find / -type f -perm -4000 2>/dev/null`
-* **GTFOBins:** If you find an unusual SUID binary (or a binary in `sudo -l`), look it up on [GTFOBins](https://gtfobins.github.io/) for exploit commands.
-
-### Upgrading a "Dumb" Shell
-If your reverse shell is unstable or lacks basic features (like clear, tab-autocomplete):
-1. `python3 -c 'import pty; pty.spawn("/bin/bash")'`
-2. `export TERM=xterm`
-3. Hit `Ctrl+Z` to background the shell.
-4. `stty raw -echo; fg`
-
----
-
-## 6. Important Wordlists & Locations (Kali / Parrot)
-
-* **Directory fuzzing (Small):** `/usr/share/wordlists/dirb/common.txt`
-* **Directory fuzzing (Medium):** `/usr/share/wordlists/dirbuster/directory-list-2.3-medium.txt`
-* **Passwords (The Holy Grail):** `/usr/share/wordlists/rockyou.txt` *(Note: you may need to unzip it first: `sudo gzip -d /usr/share/wordlists/rockyou.txt.gz`)*
+In line with the [Hack The Box platform rules](https://help.hackthebox.com/en/articles/12325897-hack-the-box-platform-rules), this repository contains **no flags, passwords or solutions** for active machines or challenges, only general techniques.
